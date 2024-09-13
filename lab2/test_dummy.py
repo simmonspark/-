@@ -1,4 +1,4 @@
-#%%
+
 import numpy as np
 import pandas as pd
 
@@ -18,22 +18,22 @@ print('-------------------')
 
 if os.path.exists('/semi.csv'):
     '''
-    혹시 파일이 생기지 않는다면, 아래 두 줄의 스크립스틑 파이썬 .py파일로 만들어서 실행하면 됩니다. 
+    혹시 파일이 생기지 않는다면, 아래 두 줄의 스크립스틑 파이썬 .py파일로 만들어서 실행하면 됩니다.
     '''
     url = "https://drive.google.com/uc?export=download&id=1XCU0eo2xZ03xhxJhdrCnVjduCoaBQ7kJ"
     urllib.request.urlretrieve(url, "semi.csv")  # save in a file
 else:
     print('data already exist')
 
-#%%
+
 df = pd.read_csv('semi.csv')
-#%%
-df.isnull().sum()
-#%%
-df.info()
-#%%
-df.describe()
-#%%
+
+print(df.isnull().sum())
+
+print(df.info())
+
+print(df.describe())
+
 
 def NullHandler(df: pd.DataFrame):
     features = range(590)
@@ -82,41 +82,37 @@ def DataHandler(df: pd.DataFrame):
 
 
 df = DataHandler(df)
-#%%
+
 print('is NaN data check : ', df.isna().sum().sum())
 
-#%%
-df
-#%%
+
+print(df)
+
 feature = df.drop('Pass/Fail', axis=1)
 target = df['Pass/Fail']
-#%%
-target
-#%%
-feature
-#%%
+
 X_train, X_test, y_train, y_test = train_test_split(feature, target, \
                                                     test_size=0.2, random_state=11,stratify=target)
 
 param_grid = {
-    'n_estimators': [50, 100, 200],  
-    'learning_rate': [0.01, 0.1, 0.3],
-    'max_depth': [3, 5, 7],
-    'subsample': [0.7, 0.8, 1.0], 
-    'colsample_bytree': [0.7, 0.8, 1.0],
-    'gamma': [0, 0.1, 0.2] 
+    'n_estimators': [50, 100, 150],
+    'learning_rate': [0.01, 0.1],
+    'max_depth': [4, 7],
+    'subsample': [0.7, 1.0],
+    'colsample_bytree': [0.7, 1.0],
+    'gamma': [0, 0.1]
 }
 
 y_train = [0 if label == -1 else 1 for label in y_train]
 y_test = [0 if label == -1 else 1 for label in y_test]
-#%%
-model = xgb.XGBClassifier(eval_metric='mlogloss')
-#%%
-grid_search = GridSearchCV(model, param_grid, cv=5, scoring='balanced_accuracy', verbose=2)
+
+model = xgb.XGBClassifier(eval_metric='mlogloss',tree_method = 'hist')
+
+grid_search = GridSearchCV(model, param_grid, cv=3, scoring='balanced_accuracy', verbose=2)
 grid_search.fit(X_train, y_train)
 print("Best parameters: ", grid_search.best_params_)
 best_model = grid_search.best_estimator_
-#%%
+
 from sklearn.metrics import f1_score, balanced_accuracy_score
 
 f1 = f1_score(best_model.predict(X_test),y_test)
