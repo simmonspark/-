@@ -54,22 +54,11 @@ class ModelLoss(nn.Module):
         return self.mse_loss(recon_x, x)
 
     def _vae_loss(self, recon_x, x, mu, logvar):
-        """
-        VAE 손실 (재구성 손실 + KL 다이버전스).
-        Args:
-            recon_x: 재구성된 이미지.
-            x: 원본 이미지.
-            mu: 잠재 공간 평균.
-            logvar: 잠재 공간 로그 분산.
-        Returns:
-            Tensor: 총 손실.
-        """
-        # 재구성 손실 (MSE)
-        recon_loss = self.mse_loss(recon_x, x)
-
+        # MSE 손실
+        recon_loss = nn.MSELoss()(recon_x, x)
         # KL 다이버전스 손실
         kl_divergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        kl_divergence /= x.size(0)  # 배치 크기로 정규화
+        kl_divergence /= x.size(0)
 
         # 총 손실
         return recon_loss + self.beta * kl_divergence

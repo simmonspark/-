@@ -1,46 +1,121 @@
 import torch
+import matplotlib.pyplot as plt
+
+from lab7.AutoEncoder import Autoencoder
+from loss import ModelLoss
+from tqdm import tqdm
 
 
-def test_model(model, dataloader, model_type, latent_dim=None, device='cuda'):
-    """
-    모델 유형에 따라 테스트 실행.
+def plot_images(original=None, reconstructed=None, generated=None, num_images=5):
+    if generated is not None:
+        generated = generated[:num_images].cpu().permute(0, 2, 3, 1)  # [B, H, W, C]
+        fig, axes = plt.subplots(1, num_images, figsize=(15, 5))
+        for i in range(num_images):
+            axes[i].imshow(generated[i].clamp(0, 1))  # Clamp to [0, 1]
+            axes[i].axis('off')
+            axes[i].set_title("Generated")
+        plt.tight_layout()
+        plt.show()
+    else:
+        original = original[:num_images].cpu().permute(0, 2, 3, 1)  # [B, H, W, C]
+        reconstructed = reconstructed[:num_images].cpu().permute(0, 2, 3, 1)
+        fig, axes = plt.subplots(2, num_images, figsize=(15, 5))
+        for i in range(num_images):
+            axes[0, i].imshow(original[i].clamp(0, 1))
+            axes[0, i].axis('off')
+            axes[0, i].set_title("Original")
+            axes[1, i].imshow(reconstructed[i].clamp(0, 1))
+            axes[1, i].axis('off')
+            axes[1, i].set_title("Reconstructed")
+        plt.tight_layout()
+        plt.show()
 
-    Args:
-        model: 테스트할 모델 (Autoencoder, VAE, Generator, 또는 Discriminator).
-        dataloader: 데이터로더.
-        model_type: 'autoencoder', 'vae', 또는 'gan' 중 하나.
-        latent_dim: GAN의 Generator에서 사용되는 잠재 공간 크기 (GAN일 경우 필수).
-        device: 테스트에 사용할 장치 ('cuda' 또는 'cpu').
 
-    Returns:
-        None. 테스트 결과를 출력.
-    """
+def test_model(model, dataloader, model_type, checkpoint_path=None, device='cuda', plot_results=True, latent_dim=None):
     model = model.to(device)
-    model.eval()  # 평가 모드로 전환
 
-    with torch.no_grad():  # 테스트 시 그래디언트 계산 비활성화
+    if checkpoint_path:
+        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+        print(f"Loaded model weights from {checkpoint_path}")
+
+    model.eval()
+    loss_fn = ModelLoss(model_type=model_type)
+    total_loss = 0
+
+    with torch.no_grad():
         if model_type in ['autoencoder', 'vae']:
-            total_loss = 0
-            for i, imgs in enumerate(dataloader):
+            for i, imgs in enumerate(tqdm(dataloader, desc="Testing")):
                 imgs = imgs.to(device)
 
-                if model_type == 'autoencoder':
-                    recon_imgs = model(imgs)  # Autoencoder는 재구성 이미지만 반환
-                    print(f"[{i}] Original Image Shape: {imgs.shape}, Reconstructed Shape: {recon_imgs.shape}")
+                if model_type == 'vae':
+                    recon_imgs, mu, logvar = model(imgs)
+                    loss = loss_fn(recon_imgs, imgs, mu, logvar)
+                    total_loss += loss.item()
 
-                elif model_type == 'vae':
-                    recon_imgs, mu, logvar = model(imgs)  # VAE는 재구성 이미지와 잠재 변수 반환
-                    print(f"[{i}] Original Shape: {imgs.shape}, Reconstructed Shape: {recon_imgs.shape}")
-                    print(f"[{i}] Latent Mean Shape: {mu.shape}, Log Variance Shape: {logvar.shape}")
+                    if plot_results and i == 0:
+                        plot_images(original=imgs, reconstructed=recon_imgs)
+
+                elif model_type == 'autoencoder':
+                    recon_imgs = model(imgs)
+                    loss = loss_fn(recon_imgs, imgs)
+                    total_loss += loss.item()
+
+                    if plot_results and i == 0:
+                        plot_images(original=imgs, reconstructed=recon_imgs)
+
+                else:
+                    raise ValueError("Invalid model_type. Use 'autoencoder' or 'vae'.")
+
+            avg_loss = total_loss / len(dataloader)
+            print(f"Average {model_type.upper()} Test Loss: {avg_loss:.4f}")
 
         elif model_type == 'gan':
             if latent_dim is None:
                 raise ValueError("latent_dim must be provided for GAN testing.")
 
-            # Generator 테스트
-            z = torch.randn(1, latent_dim, device=device)  # 샘플 잠재 벡터 생성
-            generated_img = model(z)  # Generator에서 이미지 생성
-            print(f"Generated Image Shape: {generated_img.shape}")
+            z = torch.randn(len(dataloader), latent_dim, device=device)
+            generated_imgs = model(z)
+
+            if plot_results:
+                plot_images(generated=generated_imgs)
+            print("Generated images plotted.")
 
         else:
-            raise ValueError(f"Invalid model_type: {model_type}. Choose from 'autoencoder', 'vae', or 'gan'.")
+            raise ValueError("Invalid model_type. Use 'autoencoder', 'vae', or 'gan'.")
+
+
+if __name__ == '__main__':
+    from VAE import VAE
+    from dataloader import Dataset
+
+    # Test VAE
+    vae = VAE(latent_dim=128)
+    test_loader = Dataset('./train.json')
+    aue = Autoencoder()
+    '''test_model(
+        model=aue,
+        dataloader=test_loader,
+        model_type="autoencoder",
+        checkpoint_path="./model_checkpoint_autoencoder_epoch_10.pth",
+        device='cuda'
+    )'''
+    test_model(
+        model=vae,
+        dataloader=test_loader,
+        model_type="vae",
+        checkpoint_path="./model_checkpoint_vae.pth",
+        device='cuda'
+    )
+    '''
+    from Gan import Generator
+
+    # Test GAN Generator
+    generator = Generator(latent_dim=100)
+    test_model(
+        model=generator,
+        dataloader=test_loader,
+        model_type="gan",
+        latent_dim=100,
+        plot_results=True,
+        device='cuda'
+    )'''

@@ -11,7 +11,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class Dataset(Dataset):
     def __init__(self, json_dir):
-        self.json_dir = load_json()
+        self.json_dir = load_json(json_dir)
 
     def __getitem__(self, idx):
         x = np.load(self.json_dir[idx]["x"])

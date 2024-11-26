@@ -30,7 +30,6 @@ class Dataset(Dataset):
 
 
 save_dir = "/media/unsi/media/generative_tmp"
-output_json_path = "./file_paths.json"
 file_paths = []
 
 
@@ -50,5 +49,16 @@ if __name__ == "__main__":
 
     save_all_files(dl, "data")
 
-    with open(output_json_path, "w") as f:
+    with open("./train.json", "w") as f:
         json.dump(file_paths, f, indent=4)
+
+    # Dataset 및 DataLoader 초기화
+    ds = Dataset(test_path)
+    dl = DataLoader(ds, batch_size=128, shuffle=True)
+
+    save_all_files(dl, "data")
+
+    with open("./test.json", "w") as f:
+        json.dump(file_paths, f, indent=4)
+
+    
