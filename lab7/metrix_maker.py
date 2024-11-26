@@ -23,7 +23,7 @@ class Dataset(Dataset):
         img = img.convert('RGB')
         img = np.array(img)
         img = img / 255.0
-        return torch.Tensor(img).float().to('cuda')
+        return torch.Tensor(img).float().to('cuda').permute(2,0,1)
 
     def __len__(self):
         return len(self.img_path)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     # Dataset 및 DataLoader 초기화
     ds = Dataset(train_path)
-    dl = DataLoader(ds, batch_size=16, shuffle=True)
+    dl = DataLoader(ds, batch_size=128, shuffle=True)
 
     save_all_files(dl, "data")
 
