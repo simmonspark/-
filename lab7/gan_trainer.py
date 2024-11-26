@@ -8,18 +8,7 @@ from Gan import Generator, Discriminator
 
 # GAN 학습 루프
 def train_gan(generator, discriminator, dataloader, latent_dim=100, epochs=100, lr=1e-4, device='cuda'):
-    """
-    GAN 학습 루프.
 
-    Args:
-        generator: Generator 모델.
-        discriminator: Discriminator 모델.
-        dataloader: 데이터로더.
-        latent_dim: Generator의 잠재 벡터 크기.
-        epochs: 학습 에포크 수.
-        lr: 학습률.
-        device: 'cuda' 또는 'cpu'.
-    """
     generator = generator.to(device)
     discriminator = discriminator.to(device)
 
