@@ -27,7 +27,9 @@ def test_models(autoencoder, vae, gan_generator, dataset, device='cuda'):
     # VAE로 생성
     vae.eval()
     with torch.no_grad():
-        vae_generated = vae.decoder(vae_latent)
+        tmp = vae.fc_decode(vae_latent)
+        tmp = tmp.view(-1, 512, 16, 16)
+        vae_generated = vae.decoder(tmp)
 
     # GAN Generator로 생성
     gan_generator.eval()
@@ -35,7 +37,7 @@ def test_models(autoencoder, vae, gan_generator, dataset, device='cuda'):
         gan_generated = gan_generator(gan_latent)
 
     # Dataset에서 첫 번째 이미지 가져오기
-    original_image = dataset[0].numpy().transpose(1, 2, 0)  # [C, H, W] -> [H, W, C]
+    original_image = dataset[0][0].cpu().numpy().transpose(1, 2, 0)  # [C, H, W] -> [H, W, C]
 
     # 생성된 이미지를 시각화
     generated_images = {
@@ -64,6 +66,10 @@ if __name__ == "__main__":
     autoencoder = Autoencoder()
     vae = VAE(latent_dim=512)
     gan_generator = GANGenerator(latent_dim=512)
+    # 모델 체크포인트 로드
+    autoencoder.load_state_dict(torch.load('model_checkpoint_autoencoder.pth'))
+    vae.load_state_dict(torch.load('model_checkpoint_vae.pth'))
+    gan_generator.load_state_dict(torch.load('model_checkpoint_generator_epoch15.pth'))
 
     # 테스트 실행
     test_models(autoencoder, vae, gan_generator, dataset, device='cuda' if torch.cuda.is_available() else 'cpu')
