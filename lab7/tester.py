@@ -89,8 +89,8 @@ if __name__ == '__main__':
     from dataloader import Dataset
 
     # Test VAE
-    vae = VAE(latent_dim=128)
-    test_loader = Dataset('./train.json')
+    vae = VAE(latent_dim=512)
+    test_loader = Dataset('./test.json')
     aue = Autoencoder()
     '''test_model(
         model=aue,

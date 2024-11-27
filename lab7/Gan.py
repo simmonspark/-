@@ -3,11 +3,11 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    def __init__(self, latent_dim=100):
+    def __init__(self, latent_dim=512):
         super(Generator, self).__init__()
         self.init_size = 16  # 초기 이미지 크기: 16x16
         self.fc = nn.Sequential(
-            nn.Linear(latent_dim, 512 * self.init_size * self.init_size)
+            nn.Linear(latent_dim, 512 * self.init_size * self.init_size)  # Latent vector를 초기 이미지로 매핑
         )
 
         self.conv_blocks = nn.Sequential(
@@ -54,23 +54,31 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0),  # 16 -> 1 (Real/Fake Score)
+            nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0),  # 16 -> 13
+        )
+
+        self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(13 * 13, 1),
             nn.Sigmoid()  # 출력 범위 [0, 1]
         )
 
     def forward(self, img):
-        validity = self.model(img)
-        return validity.view(-1, 1)  # Flatten for binary classification
+        features = self.model(img)
+        validity = self.fc(features)
+        return validity
 
 
 if __name__ == '__main__':
-    # Discriminator 생성
+    # Generator와 Discriminator 초기화
+    generator = Generator(latent_dim=512)
     discriminator = Discriminator()
-    generator = Generator()
-    latent_z = torch.randn(1, 100)
-    tmp = generator(latent_z)
-    print(tmp.shape)
-    tmp = discriminator(tmp)
-    print(tmp.shape)
+
+    # Generator 테스트
+    latent_z = torch.randn(1, 512)  # Latent vector 크기 512
+    generated_img = generator(latent_z)
+    print(f"Generated Image Shape: {generated_img.shape}")  # 예상 출력: (1, 3, 256, 256)
+
+    # Discriminator 테스트
+    validity = discriminator(generated_img)
+    print(f"Discriminator Output Shape: {validity.shape}")  # 예상 출력: (1, 1)

@@ -2,7 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torch
 
+# Random seed 설정 제거
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
 class ModelLoss(nn.Module):
     def __init__(self, model_type, beta=1.0, latent_dim=128):
         """
@@ -53,15 +57,21 @@ class ModelLoss(nn.Module):
         """
         return self.mse_loss(recon_x, x)
 
-    def _vae_loss(self, recon_x, x, mu, logvar):
+    '''def _vae_loss(self, recon_x, x, mu, logvar):
         # MSE 손실
+        #recon_loss_mae = nn.L1Loss()(recon_x,x)
         recon_loss = nn.MSELoss()(recon_x, x)
         # KL 다이버전스 손실
         kl_divergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         kl_divergence /= x.size(0)
 
         # 총 손실
-        return recon_loss + self.beta * kl_divergence
+        return recon_loss + self.beta * kl_divergence'''
+
+    def _vae_loss(self,recon_x, x, mu, logvar):
+        recon_loss = nn.functional.binary_cross_entropy(recon_x, x, reduction='sum')
+        kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        return recon_loss + kl_div
 
     def _gan_loss(self, real_preds, fake_preds, real_labels, fake_labels):
         """
