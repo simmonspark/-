@@ -100,10 +100,10 @@ if __name__ == '__main__':
         device='cuda'
     )'''
     test_model(
-        model=vae,
+        model=aue,
         dataloader=test_loader,
-        model_type="vae",
-        checkpoint_path="./model_checkpoint_vae.pth",
+        model_type="autoencoder",
+        checkpoint_path="./model_checkpoint_best_autoencoder.pth",
         device='cuda'
     )
     '''

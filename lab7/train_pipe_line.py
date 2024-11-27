@@ -27,6 +27,9 @@ def train_autoencoder_or_vae(
     optimizer = Adam(model.parameters(), lr=lr)
     loss_fn = ModelLoss(model_type=model_type, beta=beta)
 
+    best_val_loss = float('inf')
+    early_stop_counter = 0
+
     for epoch in range(epochs):
         # Training phase
         model.train()
@@ -50,7 +53,7 @@ def train_autoencoder_or_vae(
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item()/len
+            total_loss += loss.item()
 
         avg_train_loss = total_loss / len(train_loader)
 
@@ -72,40 +75,23 @@ def train_autoencoder_or_vae(
 
         avg_val_loss = total_val_loss / len(test_loader)
 
-        # Display reconstructed image (if visualize=True)
-        if visualize and epoch % 5 == 0:
-            vae.eval()
-            with torch.no_grad():
-                inputs = test_loader[0].to(device)  # 첫 번째 이미지만 시각화
-                recon_x, _, _ = vae(inputs)
-
-            # 원본 및 재구성 이미지 시각화
-            inputs = inputs.cpu().numpy().transpose(0, 2, 3, 1)  # [B, C, H, W] -> [B, H, W, C]
-            recon_x = recon_x.cpu().numpy().transpose(0, 2, 3, 1)
-
-            plt.figure(figsize=(10, 4))
-            for i in range(5):  # 상위 5개 이미지 시각화
-                plt.subplot(2, 5, i + 1)
-                plt.imshow(inputs[i])
-                plt.title("Original")
-                plt.axis("off")
-
-                plt.subplot(2, 5, i + 6)
-                plt.imshow(recon_x[i])
-                plt.title("Reconstructed")
-                plt.axis("off")
-
-            plt.tight_layout()
-            plt.show()
-
         # Logging progress
         print(f"Epoch [{epoch + 1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Validation Loss: {avg_val_loss:.4f}")
 
-        # Save model checkpoint every 5 epochs or last epoch
-        if (epoch + 1) % 5 == 0 or epoch == epochs - 1:
-            checkpoint_path = f"{save_path}_{model_type}.pth"
-            torch.save(model.state_dict(), checkpoint_path)
-            print(f"Model checkpoint saved at {checkpoint_path}")
+        # Best Model Save
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            best_model_path = f"{save_path}_best_{model_type}.pth"
+            torch.save(model.state_dict(), best_model_path)
+            print(f"Best model saved at {best_model_path} with Validation Loss: {best_val_loss:.4f}")
+            early_stop_counter = 0
+        else:
+            early_stop_counter += 1
+
+        # Early Stopping Check
+        if early_stop_counter >= 2:
+            print(f"Early stopping triggered after {epoch + 1} epochs.")
+            break
 
 
 if __name__ == '__main__':
@@ -120,7 +106,7 @@ if __name__ == '__main__':
         test_loader=test_loader,
         visualize=True,
         model_type="vae",
-        epochs=100,
-        lr=1e-3,
+        epochs=10000,
+        lr=1e-4,
         device='cuda'
     )
