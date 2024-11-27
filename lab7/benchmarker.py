@@ -67,9 +67,9 @@ if __name__ == "__main__":
     vae = VAE(latent_dim=512)
     gan_generator = GANGenerator(latent_dim=512)
     # 모델 체크포인트 로드
-    autoencoder.load_state_dict(torch.load('model_checkpoint_autoencoder.pth'))
-    vae.load_state_dict(torch.load('model_checkpoint_vae.pth'))
-    gan_generator.load_state_dict(torch.load('model_checkpoint_generator_epoch15.pth'))
+    autoencoder.load_state_dict(torch.load('model_checkpoint_best_autoencoder.pth'))
+    vae.load_state_dict(torch.load('model_checkpoint_best_vae.pth'))
+    gan_generator.load_state_dict(torch.load('model_checkpoint_generator.pth'))
 
     # 테스트 실행
     test_models(autoencoder, vae, gan_generator, dataset, device='cuda' if torch.cuda.is_available() else 'cpu')

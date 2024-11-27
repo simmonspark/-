@@ -117,8 +117,8 @@ def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512,
             visualize_images(generator, test_loader, latent_dim, device)
 
             # 모델 저장
-            torch.save(generator.state_dict(), f"{save_path}_generator_epoch.pth")
-            torch.save(discriminator.state_dict(), f"{save_path}_discriminator_epoch.pth")
+            torch.save(generator.state_dict(), f"{save_path}_generator.pth")
+            torch.save(discriminator.state_dict(), f"{save_path}_discriminator.pth")
 
 
 if __name__ == '__main__':

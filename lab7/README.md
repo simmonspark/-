@@ -41,3 +41,4 @@ gan : 앞서 말한 두 모델보다는 좋은 성능을 보인다. 다만, 비�
 
 이는 필자가 이전에 gan을 미리 다루어 보았을 때 직면했던 문제로 모델 model collapse라 불리는 현상이다. 이는 earth mover's distance lossfmf 사용하여 해결한 수 있다.
 
+
