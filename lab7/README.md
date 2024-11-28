@@ -46,5 +46,6 @@ gan : 앞서 말한 두 모델보다는 좋은 성능을 보인다. 다만, 비�
 
 ![img_1.png](img_1.png)
 
-![Uploading image.png…]()
+<img width="589" alt="image" src="https://github.com/user-attachments/assets/b87d6656-207b-458f-9bce-b0f27d65d1c1">
+
 
