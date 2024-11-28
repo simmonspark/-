@@ -27,7 +27,7 @@ lr, optim은 고정하였다. 데이터 또한 동일하게 사용하였다. val
 
 gan 또한 동일하다. 필자는 비교적 고해상도의 이미지 생성을 원했기에 256,256이미지를 만들어야 했다.
 256 256 이미지 3만장 정도를 128-d latent space에 매핑하기에는 차원이 부족했다.
-gan의 start latent variable dimension을 512로 잡고 실험을 진행했을 때 의미있는 모델의 학습이 이루어졌다.
+gan의 start latent variable dimension을 512로 잡고 실험을 진행했을 때 의미있는 모델의 학습이 이루어졌다. 이는 model collapse라 부르는 현상이다.
 
 다른 문제점은 특히 gan의 학습 모니터링을 어떻게 해야하는지 알 수가 없었다. generation image의 분포와 실제 이미지의 분포의 차이를 모니터링 포인트로 잡아서 해당 차이가 적절히 줄어들었을 때 학습을 멈추면 어떨까 라는 생각을 해봤지만,
 구현의 미숙으로 학습 중간중간 generation image를 확인하면서 학습 종료 지점을 수동으로 선택했다. 즉, training dynamics loss는 모델의 현재 성능을 대표하지 않기 때문에 모니터링의 어려움이 있었다.
@@ -47,5 +47,8 @@ gan : 앞서 말한 두 모델보다는 좋은 성능을 보인다. 다만, 비�
 ![img_1.png](img_1.png)
 
 <img width="589" alt="image" src="https://github.com/user-attachments/assets/b87d6656-207b-458f-9bce-b0f27d65d1c1">
+### [mode collapse image]
+![image](https://github.com/user-attachments/assets/4f98fa78-c40b-4166-a7b6-e11b21890262)
+
 
 
