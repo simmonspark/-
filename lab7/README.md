@@ -4,9 +4,8 @@
 autoencoder는 demention reduction의 역할을 한다. encoder를 거쳐 latent space에 mapping 된다. 단, 이는 discrete한 vector-point로 mapping 된다.
 따라서 discrete한 그 지점의 latent vector를 decoder에 넣었을 때 이미지의 복원을 보장하지만, 그 지점을 벗어나는(비슷하지만 다른) latent vector에 대해서는 복원을 보장하지 않는다.
 
-VAE는 autoencoder의 discrete한 point를 특정 varience를 갖는 continuance한 값으로 바꾸는 과정을 거친다.
-encoder는 해당 이미지를 레이턴트에 직접 매핑하고 recunstruct loss 만을 갖는 것이 아니라 latent vector를 가우시안 정규분포로 매핑하는 loss 또한 가지게 된다.
-해당 losss는 KL-divergence loss를 사용하게 된다. kl-divergence losss는 서로의 분포가 얼마나 다른가를 나타내는 수학적 표현이다.
+VAE는 Autoencoder와 달리 latent space를 가우시안 정규분포를 따르도록 학습시키며, reconstruction loss와 KL-divergence loss를 함께 사용한다.
+KL-divergence는 두 확률 분포 간의 차이를 측정하는 수학적 지표이다
 
 gan은 적대적 신경망으로 generator는 discriminator를 속이는 loss를 갖는다. generator는 가우시안 정규분포를 갖는 latent-z vector를 사용하여 upconv 과정을 거치게 된다.
 이후 discriminator는 해당 사진이 진짜인지 아닌지를 학습하게 된다. 따라서 한 쪽의 loss가 커녔다 작아졌다를 반복한다.
@@ -29,6 +28,9 @@ lr, optim은 고정하였다. 데이터 또한 동일하게 사용하였다. val
 gan 또한 동일하다. 필자는 비교적 고해상도의 이미지 생성을 원했기에 256,256이미지를 만들어야 했다.
 256 256 이미지 3만장 정도를 128-d latent space에 매핑하기에는 차원이 부족했다.
 gan의 start latent variable dimension을 512로 잡고 실험을 진행했을 때 의미있는 모델의 학습이 이루어졌다.
+
+다른 문제점은 특히 gan의 학습 모니터링을 어떻게 해야하는지 알 수가 없었다. generation image의 분포와 실제 이미지의 분포의 차이를 모니터링 포인트로 잡아서 해당 차이가 적절히 줄어들었을 때 학습을 멈추면 어떨까 라는 생각을 해봤지만,
+구현의 미숙으로 학습 중간중간 generation image를 확인하면서 학습 종료 지점을 수동으로 선택했다. 즉, training dynamics loss는 모델의 현재 성능을 대표하지 않기 때문에 모니터링의 어려움이 있었다.
 
 ### [conclusion]
 
