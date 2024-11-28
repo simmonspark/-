@@ -106,6 +106,7 @@ if __name__ == '__main__':
         checkpoint_path="./model_checkpoint_best_vae.pth",
         device='cuda'
     )
+
     '''
     from Gan import Generator
 
