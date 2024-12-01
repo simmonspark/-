@@ -64,7 +64,31 @@ def validate_gan(generator, discriminator, test_loader, latent_dim, device):
     return avg_d_loss, avg_g_loss
 
 
-def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512, epochs=100, lr=1e-4, device='cuda', save_path="./model_checkpoint"):
+from scipy.stats import entropy
+
+def calculate_kl_divergence(real_imgs, fake_imgs, bins=50):
+    """실제 이미지와 생성된 이미지 간의 KL Divergence를 계산"""
+    real_imgs = real_imgs.cpu().numpy().flatten()
+    fake_imgs = fake_imgs.cpu().numpy().flatten()
+
+    # 히스토그램 계산
+    real_hist, _ = np.histogram(real_imgs, bins=bins, range=(0, 1), density=True)
+    fake_hist, _ = np.histogram(fake_imgs, bins=bins, range=(0, 1), density=True)
+
+    # 확률 분포 정규화
+    real_hist += 1e-8  # 분모가 0이 되지 않도록 작은 값 추가
+    fake_hist += 1e-8
+    real_hist /= real_hist.sum()
+    fake_hist /= fake_hist.sum()
+
+    # KL Divergence 계산
+    kl_div = entropy(real_hist, fake_hist)
+    return kl_div
+
+def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512, epochs=100, lr=1e-4, device='cuda', save_path="./model_checkpoint", kl_threshold=0.02):
+    generator.load_state_dict(torch.load('model_checkpoint_generator.pth'))
+    discriminator.load_state_dict(torch.load('model_checkpoint_discriminator.pth'))
+
     generator = generator.to(device)
     discriminator = discriminator.to(device)
 
@@ -115,6 +139,19 @@ def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512,
 
             # 생성 이미지 시각화
             visualize_images(generator, test_loader, latent_dim, device)
+
+            # KL Divergence 계산
+            with torch.no_grad():
+                real_imgs = next(iter(test_loader)).to(device)
+                z = torch.randn(real_imgs.size(0), latent_dim, device=device)
+                fake_imgs = generator(z)
+                kl_div = calculate_kl_divergence(real_imgs, fake_imgs)
+                tqdm.write(f"KL Divergence: {kl_div:.4f}")
+
+                # KL Divergence가 임계값 이하인 경우 학습 중단
+                if kl_div < kl_threshold:
+                    tqdm.write("KL Divergence가 임계값 이하이므로 학습을 중단합니다.")
+                    break
 
             # 모델 저장
             torch.save(generator.state_dict(), f"{save_path}_generator.pth")

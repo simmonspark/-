@@ -92,31 +92,17 @@ if __name__ == '__main__':
     vae = VAE(latent_dim=512)
     test_loader = Dataset('./test.json')
     aue = Autoencoder()
-    '''test_model(
-        model=aue,
-        dataloader=test_loader,
-        model_type="autoencoder",
-        checkpoint_path="./model_checkpoint_autoencoder_epoch_10.pth",
-        device='cuda'
-    )'''
-    test_model(
-        model=vae,
-        dataloader=test_loader,
-        model_type="vae",
-        checkpoint_path="./model_checkpoint_best_vae.pth",
-        device='cuda'
-    )
 
-    '''
+
     from Gan import Generator
 
     # Test GAN Generator
-    generator = Generator(latent_dim=100)
+    generator = Generator(latent_dim=512)
     test_model(
         model=generator,
         dataloader=test_loader,
         model_type="gan",
-        latent_dim=100,
-        plot_results=True,
+        latent_dim=512,
+        plot_results=True,checkpoint_path='./model_checkpoint_generator.pth',
         device='cuda'
-    )'''
+    )

@@ -46,9 +46,25 @@ gan : 앞서 말한 두 모델보다는 좋은 성능을 보인다. 다만, 비�
 
 ![img_1.png](img_1.png)
 
+## using generator or decoder only
+
+### all model test_bench_1
 <img width="589" alt="image" src="https://github.com/user-attachments/assets/b87d6656-207b-458f-9bce-b0f27d65d1c1">
-### [mode collapse image]
-![image](https://github.com/user-attachments/assets/4f98fa78-c40b-4166-a7b6-e11b21890262)
+
+### all model test_bench_1
+![img_2.png](img_2.png)
+
+### autoencoder
+![img_3.png](img_3.png)
+
+### vae
+![img_4.png](img_4.png)
+
+### gan
+![img_5.png](img_5.png)
+
+
+
 
 
 
