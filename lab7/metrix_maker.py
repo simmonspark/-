@@ -1,74 +1,64 @@
-import torch
-import matplotlib.pyplot as plt
-from VAE import VAE
-from Gan import Generator as GANGenerator
-from AutoEncoder import Autoencoder
+import cv2
 import numpy as np
+import tqdm
+from torch.utils.data import Dataset, DataLoader
+import torch
+from PIL import Image as image
+from utils import get_img_path
+import functools
+import os
+from PIL import ImageFile
 import json
-from dataloader import Dataset
+from tqdm import tqdm
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-# 이미지 생성 및 시각화
-def test_models(autoencoder, vae, gan_generator, dataset, device='cuda'):
-    autoencoder.to(device)
-    vae.to(device)
-    gan_generator.to(device)
+class Dataset(Dataset):
+    def __init__(self, img_path):
+        self.img_path = img_path
 
-    # 테스트용 latent 생성
-    autoencoder_latent = torch.randn(1, 512, 16, 16).to(device)  # Autoencoder latent space
-    vae_latent = torch.randn(1, 512).to(device)  # VAE latent space
-    gan_latent = torch.randn(1, 512).to(device)  # GAN latent space
+    def __getitem__(self, idx):
+        img = image.open(self.img_path[idx])
+        img = img.convert('RGB')
+        img = np.array(img)
+        img = img / 255.0
+        return torch.Tensor(img).float().to('cuda').permute(2,0,1)
 
-    # Autoencoder로 생성
-    autoencoder.eval()
-    with torch.no_grad():
-        ae_generated = autoencoder.decoder(autoencoder_latent)
+    def __len__(self):
+        return len(self.img_path)
 
-    # VAE로 생성
-    vae.eval()
-    with torch.no_grad():
-        vae_generated = vae.decoder(vae_latent)
 
-    # GAN Generator로 생성
-    gan_generator.eval()
-    with torch.no_grad():
-        gan_generated = gan_generator(gan_latent)
+save_dir = "/media/unsi/media/generative_tmp"
+file_paths = []
 
-    # Dataset에서 첫 번째 이미지 가져오기
-    original_image = dataset[0].numpy().transpose(1, 2, 0)  # [C, H, W] -> [H, W, C]
 
-    # 생성된 이미지를 시각화
-    generated_images = {
-        "Original": original_image,
-        "Autoencoder": ae_generated.cpu().numpy().squeeze().transpose(1, 2, 0),
-        "VAE": vae_generated.cpu().numpy().squeeze().transpose(1, 2, 0),
-        "GAN": gan_generated.cpu().numpy().squeeze().transpose(1, 2, 0)
-    }
-
-    plt.figure(figsize=(12, 8))
-    for i, (title, img) in enumerate(generated_images.items(), start=1):
-        plt.subplot(2, 2, i)
-        plt.imshow((img * 255).clip(0, 255).astype(np.uint8))  # [0, 1] -> [0, 255]
-        plt.title(title)
-        plt.axis("off")
-
-    plt.tight_layout()
-    plt.show()
+def save_all_files(data_loader, prefix):
+    for i, x in enumerate(tqdm(data_loader, desc=f"Saving {prefix} files")):
+        x_path = os.path.join(save_dir, f"{prefix}_x{i + 1}.npy")
+        np.save(x_path, x.cpu().numpy())
+        file_paths.append({"x": x_path})
 
 
 if __name__ == "__main__":
-    # Dataset 초기화
-    dataset = Dataset('./train.json')
+    train_path, test_path = get_img_path()
 
-    # 모델 초기화
-    autoencoder = Autoencoder()
-    vae = VAE(latent_dim=512)
-    gan_generator = GANGenerator(latent_dim=512)
+    # Dataset 및 DataLoader 초기화
+    ds = Dataset(train_path)
+    dl = DataLoader(ds, batch_size=128, shuffle=True)
 
-    # 모델 체크포인트 로드
-    autoencoder.load_state_dict(torch.load('model_checkpoint_autoencoder.pth'))
-    vae.load_state_dict(torch.load('model_checkpoint_vae.pth'))
-    gan_generator.load_state_dict(torch.load('model_checkpoint_gan.pth'))
+    save_all_files(dl, "data")
 
-    # 테스트 실행
-    test_models(autoencoder, vae, gan_generator, dataset, device='cuda' if torch.cuda.is_available() else 'cpu')
+    with open("./train.json", "w") as f:
+        json.dump(file_paths, f, indent=4)
+
+    # Dataset 및 DataLoader 초기화
+    ds = Dataset(test_path)
+    dl = DataLoader(ds, batch_size=128, shuffle=True)
+
+    save_all_files(dl, "data")
+
+    with open("./test.json", "w") as f:
+        json.dump(file_paths, f, indent=4)
+
+    

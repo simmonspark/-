@@ -86,8 +86,8 @@ def calculate_kl_divergence(real_imgs, fake_imgs, bins=50):
     return kl_div
 
 def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512, epochs=100, lr=1e-4, device='cuda', save_path="./model_checkpoint", kl_threshold=0.02):
-    generator.load_state_dict(torch.load('model_checkpoint_generator.pth'))
-    discriminator.load_state_dict(torch.load('model_checkpoint_discriminator.pth'))
+    #generator.load_state_dict(torch.load('model_checkpoint_generator.pth'))
+    #discriminator.load_state_dict(torch.load('model_checkpoint_discriminator.pth'))
 
     generator = generator.to(device)
     discriminator = discriminator.to(device)
@@ -140,26 +140,13 @@ def train_gan(generator, discriminator, dataloader, test_loader, latent_dim=512,
             # 생성 이미지 시각화
             visualize_images(generator, test_loader, latent_dim, device)
 
-            # KL Divergence 계산
-            with torch.no_grad():
-                real_imgs = next(iter(test_loader)).to(device)
-                z = torch.randn(real_imgs.size(0), latent_dim, device=device)
-                fake_imgs = generator(z)
-                kl_div = calculate_kl_divergence(real_imgs, fake_imgs)
-                tqdm.write(f"KL Divergence: {kl_div:.4f}")
-
-                # KL Divergence가 임계값 이하인 경우 학습 중단
-                if kl_div < kl_threshold:
-                    tqdm.write("KL Divergence가 임계값 이하이므로 학습을 중단합니다.")
-                    break
-
             # 모델 저장
             torch.save(generator.state_dict(), f"{save_path}_generator.pth")
             torch.save(discriminator.state_dict(), f"{save_path}_discriminator.pth")
-
+            print('\n!saved!\n')
 
 if __name__ == '__main__':
     train, test = get_img_path()
     train_loader = Dataset('./train.json')
     test_loader = Dataset('./test.json')
-    train_gan(generator=Generator(latent_dim=512), discriminator=Discriminator(), dataloader=train_loader, test_loader=test_loader, latent_dim=512, epochs=100, lr=1e-4)
+    train_gan(generator=Generator(latent_dim=512), discriminator=Discriminator(), dataloader=train_loader, test_loader=test_loader, latent_dim=512, epochs=200, lr=1e-4)
