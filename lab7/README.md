@@ -49,10 +49,12 @@ gan : 앞서 말한 두 모델보다는 좋은 성능을 보인다. 다만, 비�
 ## using generator or decoder only
 
 ### all model test_bench_1
-<img width="589" alt="image" src="https://github.com/user-attachments/assets/b87d6656-207b-458f-9bce-b0f27d65d1c1">
+
+![스크린샷 2024-12-03 15-17-39](https://github.com/user-attachments/assets/55b861f2-f508-4368-b8d7-99c567c0749b)
 
 ### all model test_bench_1
-![img_2.png](img_2.png)
+
+![스크린샷 2024-12-03 15-17-12](https://github.com/user-attachments/assets/1c4d6850-de32-4c18-907e-2877d76f3668)
 
 ### autoencoder
 ![img_3.png](img_3.png)
