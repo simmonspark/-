@@ -97,12 +97,12 @@ if __name__ == '__main__':
     from Gan import Generator
 
     # Test GAN Generator
-    generator = Generator(latent_dim=512)
+    generator = Generator(latent_dim=1024)
     test_model(
-        model=vae,
+        model=generator,
         dataloader=test_loader,
-        model_type="vae",
-        latent_dim=512,
-        plot_results=True,checkpoint_path='./model_checkpoint_best_vae.pth',
+        model_type="gan",
+        latent_dim=1024,
+        plot_results=True,checkpoint_path='./model_checkpoint_generator.pth',
         device='cuda'
     )
