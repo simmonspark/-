@@ -69,7 +69,7 @@ class ModelLoss(nn.Module):
         return recon_loss + self.beta * kl_divergence'''
 
     def _vae_loss(self,recon_x, x, mu, logvar):
-        recon_loss = nn.functional.binary_cross_entropy(recon_x, x, reduction='sum')
+        recon_loss = nn.functional.mse_loss(recon_x, x, reduction='sum')
         kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         return recon_loss + kl_div
 

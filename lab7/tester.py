@@ -99,10 +99,10 @@ if __name__ == '__main__':
     # Test GAN Generator
     generator = Generator(latent_dim=512)
     test_model(
-        model=generator,
+        model=vae,
         dataloader=test_loader,
-        model_type="gan",
+        model_type="vae",
         latent_dim=512,
-        plot_results=True,checkpoint_path='./model_checkpoint_generator.pth',
+        plot_results=True,checkpoint_path='./model_checkpoint_best_vae.pth',
         device='cuda'
     )

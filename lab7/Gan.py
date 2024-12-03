@@ -11,18 +11,19 @@ class Generator(nn.Module):
     def __init__(self, latent_dim=512):
         super(Generator, self).__init__()
         self.init_size = 16  # 초기 이미지 크기: 16x16
+        self.latent_dim = latent_dim
         self.fc = nn.Sequential(
-            nn.Linear(latent_dim, 512 * self.init_size * self.init_size)  # Latent vector를 초기 이미지로 매핑
+            nn.Linear(latent_dim, latent_dim * self.init_size * self.init_size)  # Adjust the mapping here
         )
 
-        # ConvTranspose2d 블록마다 Channel Attention 추가
+
         self.conv1 = nn.Sequential(
-            nn.BatchNorm2d(512),
-            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1),  # 16 -> 32
+            nn.BatchNorm2d(latent_dim),
+            nn.ConvTranspose2d(latent_dim, 256, kernel_size=4, stride=2, padding=1),  # 16 -> 32
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True)
         )
- # Channel Attention
+
 
         self.conv2 = nn.Sequential(
             nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),  # 32 -> 64
@@ -40,12 +41,12 @@ class Generator(nn.Module):
 
         self.conv4 = nn.Sequential(
             nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1),  # 128 -> 256
-            nn.Tanh()  # 출력 값을 [-1, 1] 범위로 제한
+            nn.Sigmoid()
         )
 
     def forward(self, z):
         out = self.fc(z)
-        out = out.view(out.size(0), 512, self.init_size, self.init_size)  # reshape
+        out = out.view(out.size(0), self.latent_dim, self.init_size, self.init_size)  # reshape
 
         out = self.conv1(out)  # ConvTranspose2d + BatchNorm + ReLU
 
@@ -96,11 +97,11 @@ class Discriminator(nn.Module):
 
 if __name__ == '__main__':
     # Generator와 Discriminator 초기화
-    generator = Generator(latent_dim=512)
+    generator = Generator(latent_dim=1024)
     discriminator = Discriminator()
 
     # Generator 테스트
-    latent_z = torch.randn(1, 512)  # Latent vector 크기 512
+    latent_z = torch.randn(1, 1024)  # Latent vector 크기 512
     generated_img = generator(latent_z)
     print(f"Generated Image Shape: {generated_img.shape}")  # 예상 출력: (1, 3, 256, 256)
 

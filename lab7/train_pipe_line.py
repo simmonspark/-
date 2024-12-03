@@ -98,7 +98,7 @@ if __name__ == '__main__':
     train, test = get_img_path()
     train_loader = Dataset('./train.json')
     test_loader = Dataset('./test.json')
-    vae = VAE()
+    vae = VAE(latent_dim=512)
     autoencoder = Autoencoder()
     train_autoencoder_or_vae(
         model=vae,

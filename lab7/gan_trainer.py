@@ -149,4 +149,4 @@ if __name__ == '__main__':
     train, test = get_img_path()
     train_loader = Dataset('./train.json')
     test_loader = Dataset('./test.json')
-    train_gan(generator=Generator(latent_dim=512), discriminator=Discriminator(), dataloader=train_loader, test_loader=test_loader, latent_dim=512, epochs=200, lr=1e-4)
+    train_gan(generator=Generator(latent_dim=1024), discriminator=Discriminator(), dataloader=train_loader, test_loader=test_loader, latent_dim=1024, epochs=200, lr=1e-4)

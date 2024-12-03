@@ -17,7 +17,7 @@ def test_models(autoencoder, vae, gan_generator, dataset, device='cuda'):
     # 테스트용 latent 생성
     autoencoder_latent = torch.randn(1, 512, 16, 16).to(device)  # Autoencoder latent space
     vae_latent = torch.randn(1, 512).to(device)  # VAE latent space
-    gan_latent = torch.randn(1, 512).to(device)  # GAN latent space
+    gan_latent = torch.randn(1, 1024).to(device)  # GAN latent space
 
     # Autoencoder로 생성
     autoencoder.eval()
@@ -41,7 +41,6 @@ def test_models(autoencoder, vae, gan_generator, dataset, device='cuda'):
 
     # 생성된 이미지를 시각화
     generated_images = {
-        "Original": original_image,
         "Autoencoder": ae_generated.cpu().numpy().squeeze().transpose(1, 2, 0),
         "VAE": vae_generated.cpu().numpy().squeeze().transpose(1, 2, 0),
         "GAN": gan_generated.cpu().numpy().squeeze().transpose(1, 2, 0)
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     # 모델 초기화
     autoencoder = Autoencoder()
     vae = VAE(latent_dim=512)
-    gan_generator = GANGenerator(latent_dim=512)
+    gan_generator = GANGenerator(latent_dim=1024)
     # 모델 체크포인트 로드
     autoencoder.load_state_dict(torch.load('model_checkpoint_best_autoencoder.pth'))
     vae.load_state_dict(torch.load('model_checkpoint_best_vae.pth'))
